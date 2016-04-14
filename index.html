@@ -1,0 +1,58 @@
+<!-- Use a templated HTML printing scriptlet to import common stylesheet. -->
+<?!= HtmlService.createHtmlOutputFromFile('Stylesheet').getContent(); ?>
+<html>
+<head>
+<link href='https://fonts.googleapis.com/css?family=Oswald|Lato' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+
+</head>
+<body onload="getPassword()">
+    <h1>
+      Kanban Challenge: Team    <div id="teamNum"></div>
+    </h1>
+    
+    <div id="container">
+      
+      <table>
+        <tr>
+          <td>
+            <h3>Unstarted Tasks</h3>
+            <div id="toDo" class="col">
+<!--              <div class="element">Task 1 <button class="start">Start</button></div> -->
+            </div>
+          </td>
+          <td >
+            <h3>Started Tasks</h3>
+            <div class="col" id="doing">
+            </div>
+          </td>
+          <td>
+            <h3>Finished Tasks</h3>
+            <div id="done" class="col"></div>
+          </td>
+        </tr>
+      </table>
+      
+      <div>
+        <button onclick="refreshTeamInfo()">Refresh</button>
+      </div>
+</div>
+
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+
+<div id="thanks">
+<h1 id="thanksHeader">Made with <i class="fa fa-heart"></i> by eleMENT </h1> 
+</div>
+
+
+</body>
+</html>
+
+<!-- Store data passed to template here, so it is available to the
+     imported JavaScript. -->
+
+<!-- Use a templated HTML printing scriptlet to import JavaScript. -->
+<?!= HtmlService.createHtmlOutputFromFile('JavaScript').getContent(); ?>
