@@ -1,0 +1,214 @@
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script>
+  /**
+   * Run initializations on web app load.
+   */
+
+function sendRequest(taskNumber){ // pushes request contents to google sheets
+   var requestContents = [];
+   requestContents.push(document.getElementById("teamNum").innerHTML);
+   requestContents.push(logTime());
+   requestContents.push(taskNumber.id);
+   
+   taskNumber.className = "check greyOut";
+   taskNumber.setAttribute('disabled', 'disabled');
+   
+   console.log(requestContents + "hey");
+   google.script.run.postRequest(requestContents);
+}
+
+function refreshTeamInfo(){
+  var teamNum = document.getElementById("teamNum").innerHTML;
+  //console.log(teamNum):
+  google.script.run.withSuccessHandler(displayTaskData).sendTeamInfo(document.getElementById("teamNum").innerHTML-1); 
+} 
+
+function displayTaskData(systemData){
+   console.log(systemData);
+   var toDo = parseTaskList(systemData,0);
+   var doing = parseTaskList(systemData,1);
+   var done = parseTaskList(systemData,2);
+   
+   clearContent("toDo");
+   clearContent("doing");
+   clearContent("done");
+   
+   for (var i = 0; i<toDo.length; i++){
+      addTaskDiv(toDo[i],0);
+   
+   }
+   
+   for (var i = 0; i<doing.length; i++){
+      addTaskDiv(doing[i],1);
+   
+   }
+   
+   for (var i = 0; i<done.length; i++){
+      addTaskDiv(done[i],2);
+   
+   }
+}
+
+function clearContent(elementId){
+   $("#" + elementId).empty();
+}
+
+function addTaskDiv(taskNumber,column){
+    var taskDiv = document.createElement("div");
+    taskDiv.className = "element"
+    taskDiv.id = taskNumber;
+    var taskName = document.createTextNode("Task " + taskNumber);
+    taskDiv.appendChild(taskName);
+    
+    
+    switch(column){
+       case 0:
+         var columnToAdd = document.getElementById("toDo")
+         break;
+       case 1:
+         var columnToAdd = document.getElementById("doing")
+         break;
+       case 2:
+         var columnToAdd = document.getElementById("done")
+         break;         
+    }
+    
+    columnToAdd.appendChild(taskDiv);
+    
+    switch(column){
+       case 0:
+         var startButton = document.createElement("button")
+         startButton.className = "start";
+         startButton.id = taskNumber;
+         
+         startButton.addEventListener("click",function(){startTask(this,0,1)});
+         //startButton.addEventListener("click",console.log("hey"));
+         
+         var startText = document.createTextNode("Start");
+         startButton.appendChild(startText);
+         taskDiv.appendChild(startButton);
+         break;
+         
+         
+       case 1:
+         var cancelButton = document.createElement("button")
+         cancelButton.className = "cancel";
+         cancelButton.id = taskNumber;
+         
+         cancelButton.addEventListener("click",function(){stopTask(this,1,0)});
+
+         
+         var cancelText = document.createTextNode("Cancel");
+         cancelButton.appendChild(cancelText);
+         taskDiv.appendChild(cancelButton);
+
+
+
+
+         var checkButton = document.createElement("button")
+         checkButton.className = "check";
+         checkButton.id = taskNumber;
+         
+         checkButton.addEventListener("click",function(){sendRequest(this)});
+         
+         var checkText = document.createTextNode("Check");
+         checkButton.appendChild(checkText);
+         taskDiv.appendChild(checkButton);
+
+
+
+         break;
+       case 2:
+         var columnToAdd = document.getElementById("done")
+         break;         
+    }
+    
+  }
+
+
+function stopTask(taskDiv, currentColumn, nextColumn){
+   google.script.run.withSuccessHandler(refreshTeamInfo).receiveColumnChange(Number(document.getElementById("teamNum").innerHTML),Number(taskDiv.id),currentColumn+1,nextColumn+1);
+
+}
+
+function startTask(taskDiv,currentColumn,nextColumn){
+console.log(document.getElementById("teamNum").innerHTML);
+console.log(taskDiv.id);
+console.log(currentColumn+1);
+console.log(nextColumn+1);
+
+   google.script.run.withSuccessHandler(refreshTeamInfo).receiveColumnChange(Number(document.getElementById("teamNum").innerHTML),Number(taskDiv.id),currentColumn+1,nextColumn+1);
+   //google.script.run.receiveColumnChange(1,taskDiv, currentColumn, nextColumn+1);
+
+}
+
+
+
+//This function was meant for client-side display changes (like when they click start, it automatically moves the data point to the "doing" column) for now it's not used
+function moveTask(systemData){
+   
+    switch(systemData[1]-1){
+       case 0:
+         var columnToSearch = document.getElementById("toDo");
+         break;
+       case 1:
+         var columnToSearch = document.getElementById("doing");
+         break;
+       case 2:
+         var columnToSearch = document.getElementById("done");
+         break;         
+    }
+   
+   var columnElments = columnToSearch.childNodes;
+   
+   for (var i = 0; i<columnElments.length; i++){
+   console.log("ya");
+       if (columnElments[i].id == systemData[0]){
+           var taskToMove = columnElments[systemData[0]-1];
+           console.log(taskToMove + " yo");
+           }
+       
+       }
+   
+   
+   }
+
+function parseTaskList(taskList,taskType){
+   var tasksToDisplay = [];
+   for (var i=0; i<taskList[taskType].length; i++){
+   console.log("yo")
+      if (taskList[taskType][i]!=""){
+         tasksToDisplay.push(taskList[taskType][i])
+      }
+   
+   }
+   return tasksToDisplay;
+}
+
+function logTime(){ // this takes the current time and formats it into a way that Google Spreadsheets can handle.
+  var now = new Date();
+  var stringHours = now.getHours().toString();
+  var nowFormatted = stringHours.concat(":",now.getMinutes(),":",now.getSeconds());
+  return nowFormatted;
+}
+
+function getPassword(){
+  var password = prompt("What's your team password?");
+  google.script.run.withSuccessHandler(showTeamNumber).teamVerification(password);
+}
+
+function showTeamNumber(systemData){
+   if (systemData!=false){
+   document.getElementById("teamNum").innerHTML = systemData;
+    refreshTeamInfo(Number(systemData));
+   }
+   else{
+      alert("That password does not correspond to any team, please refresh and try again");
+   }
+  
+
+}
+
+
+
+</script>
